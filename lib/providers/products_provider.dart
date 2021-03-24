@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'product.dart';
+import 'package:http/http.dart' as http;
 
 class Products with ChangeNotifier {
   List<Product> _items = [
@@ -29,20 +32,47 @@ class Products with ChangeNotifier {
     return _items.where((prod) => prod.isFavourite).toList();
   }
 
+  Future<void> fetchAndSetData() async {
+    var url =
+        Uri.parse('https://buily-mu-default-rtdb.firebaseio.com/products.json');
+    try {
+      final response = await http.get(url);
+      print(json.decode(response.body));
+    } catch (error) {
+      print(error);
+      throw error;
+    }
+  }
+
   Product findById(String id) {
     return _items.firstWhere((prod) => prod.id == id);
   }
 
-  void addProduct(Product product) {
-    Product _tobeSaved = Product(
-      id: DateTime.now().toString(),
-      title: product.title,
-      price: product.price,
-      imageUrl: product.imageUrl,
-      description: product.description,
-    );
-    _items.add(_tobeSaved);
-    notifyListeners();
+  Future<void> addProduct(Product product) async {
+    var url =
+        Uri.parse('https://buily-mu-default-rtdb.firebaseio.com/products.json');
+    try {
+      final respone = await http.post(url,
+          body: json.encode({
+            "title": product.title,
+            "price": product.price,
+            "imageUrl": product.imageUrl,
+            "description": product.description,
+          }));
+      Product _tobeSaved = Product(
+        id: json.decode(respone.body)['name'],
+        title: product.title,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        description: product.description,
+      );
+
+      _items.add(_tobeSaved);
+      notifyListeners();
+    } catch (error) {
+      print(error);
+      throw error;
+    }
   }
 
   void updateProduct(String id, Product product) {
