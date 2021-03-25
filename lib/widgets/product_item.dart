@@ -10,7 +10,7 @@ class ProductGridItem extends StatelessWidget {
   ProductGridItem({this.id, this.title, this.imageUrl}); */
   @override
   Widget build(BuildContext context) {
-    final product = Provider.of<Product>(context, listen: false);
+    final product = Provider.of<Product>(context);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),

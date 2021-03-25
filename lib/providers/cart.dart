@@ -39,7 +39,7 @@ class Cart with ChangeNotifier {
         (exsistingCartItem) => CartItem(
           id: exsistingCartItem.id,
           title: exsistingCartItem.title,
-          price: exsistingCartItem.quantity + 1 * exsistingCartItem.price,
+          price: exsistingCartItem.price,
           quantity: exsistingCartItem.quantity + 1,
         ),
       );

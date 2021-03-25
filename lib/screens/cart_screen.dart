@@ -38,16 +38,7 @@ class CartScreen extends StatelessWidget {
                     ),
                     backgroundColor: themeData.primaryColor,
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Provider.of<Orders>(context, listen: false).addOrder(
-                        cart.items.values.toList(),
-                        cart.totalAmount,
-                      );
-                      cart.clearCart();
-                    },
-                    child: Text('Order Now'),
-                  )
+                  OrderButton(cart: cart)
                 ],
               ),
             ),
@@ -69,5 +60,60 @@ class CartScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class OrderButton extends StatefulWidget {
+  const OrderButton({
+    @required this.cart,
+  });
+
+  final Cart cart;
+
+  @override
+  _OrderButtonState createState() => _OrderButtonState();
+}
+
+class _OrderButtonState extends State<OrderButton> {
+  bool _isplacing = false;
+  Future<void> addOrder() async {
+    {
+      setState(() {
+        _isplacing = true;
+      });
+      try {
+        await Provider.of<Orders>(context, listen: false).addOrder(
+          widget.cart.items.values.toList(),
+          widget.cart.totalAmount,
+        );
+        widget.cart.clearCart();
+      } catch (_) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            content: Text('An error has ocured please try again later'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Okay'),
+              )
+            ],
+          ),
+        );
+      }
+    }
+    setState(() {
+      _isplacing = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isplacing
+        ? Center(child: CircularProgressIndicator())
+        : TextButton(
+            onPressed: widget.cart.totalAmount <= 0 ? null : () => addOrder(),
+            child: Text('Order Now'),
+          );
   }
 }

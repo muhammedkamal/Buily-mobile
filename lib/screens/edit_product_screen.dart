@@ -47,18 +47,32 @@ class _EditProductScreenState extends State<EditProductScreen> {
           ),
         );
       }
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.of(context).pop();
     } else {
-      Provider.of<Products>(context, listen: false)
-          .updateProduct(prodId, _editedProduct);
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.of(context).pop();
+      try {
+        await Provider.of<Products>(context, listen: false)
+            .updateProduct(prodId, _editedProduct);
+      } catch (error) {
+        await showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('An error has occured'),
+            content: Text('Please Try again in few minutes'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Okay'),
+              )
+            ],
+          ),
+        );
+      }
     }
+    setState(() {
+      _isLoading = false;
+    });
+    Navigator.of(context).pop();
   }
 
   @override
