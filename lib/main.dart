@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:market_app/providers/auth.dart';
-
 import 'package:provider/provider.dart';
 
 import 'screens/cart_screen.dart';
@@ -15,6 +13,9 @@ import './screens/auth_screen.dart';
 import './providers/products_provider.dart';
 import './providers/cart.dart';
 import './providers/orders.dart';
+import './providers/auth.dart';
+
+import './helpers/custom_route.dart';
 
 void main() {
   runApp(MyApp());
@@ -49,11 +50,14 @@ class MyApp extends StatelessWidget {
         builder: (context, authData, _) => MaterialApp(
           title: 'Buily',
           theme: ThemeData(
-            primarySwatch: Colors.teal,
-            accentColor: Colors.deepOrangeAccent,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-            fontFamily: 'Lato',
-          ),
+              primarySwatch: Colors.teal,
+              accentColor: Colors.deepOrangeAccent,
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+              fontFamily: 'Lato',
+              pageTransitionsTheme: PageTransitionsTheme(builders: {
+                TargetPlatform.android: CustomPageTransitionBuilder(),
+                TargetPlatform.iOS: CustomPageTransitionBuilder(),
+              })),
           home: authData.isAuth()
               ? ProductsOverView()
               : FutureBuilder(
