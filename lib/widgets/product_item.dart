@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/cart.dart';
 import '../providers/product.dart';
 import '../screens/product_details.dart';
+import 'package:market_app/providers/auth.dart';
 
 class ProductGridItem extends StatelessWidget {
 /*   final String id, title, imageUrl;
@@ -11,7 +12,7 @@ class ProductGridItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final product = Provider.of<Product>(context);
-
+    final authData = Provider.of<Auth>(context, listen: false);
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: GestureDetector(
@@ -40,7 +41,10 @@ class ProductGridItem extends StatelessWidget {
                           ? Icons.favorite
                           : Icons.favorite_border),
                       onPressed: () {
-                        product.toggleFavouriteStatus();
+                        product.toggleFavouriteStatus(
+                          authData.token,
+                          authData.userId,
+                        );
                       },
                       color: Theme.of(context).accentColor,
                     ),

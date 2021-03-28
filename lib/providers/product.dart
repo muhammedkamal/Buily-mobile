@@ -15,15 +15,15 @@ class Product with ChangeNotifier {
     @required this.price,
     this.isFavourite = false,
   });
-  Future<void> toggleFavouriteStatus() async {
+  Future<void> toggleFavouriteStatus(String authtoken, String userId) async {
     isFavourite = !isFavourite;
     notifyListeners();
     var url = Uri.parse(
-        'https://buily-mu-default-rtdb.firebaseio.com/products/$id.json');
+        'https://buily-mu-default-rtdb.firebaseio.com/FavProducts/$userId.json?auth=$authtoken');
     try {
-      final resposne = await http.patch(url,
+      final resposne = await http.put(url,
           body: json.encode({
-            "isFavourite": isFavourite,
+            "$id": isFavourite,
           }));
       if (resposne.statusCode >= 400) {
         isFavourite = !isFavourite;

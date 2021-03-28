@@ -25,7 +25,9 @@ class Products with ChangeNotifier {
           'https://assets.rebelmouse.io/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbWFnZSI6Imh0dHBzOi8vYXNzZXRzLnJibC5tcy8xOTQwOTA1MS9vcmlnaW4uanBnIiwiZXhwaXJlc19hdCI6MTY0OTY4Mjc1MX0.Gi9_iy8LMozNmkOc0tuWxXNDOZyvYJ5Qg_Musl0yJA4/img.jpg?width=980&quality=85',
     ) */
   ];
-
+  final authtoken;
+  final userId;
+  Products(this.authtoken, this.userId, this._items);
   List<Product> get items {
     return [..._items];
   }
@@ -34,22 +36,31 @@ class Products with ChangeNotifier {
     return _items.where((prod) => prod.isFavourite).toList();
   }
 
-  Future<void> fetchAndSetData() async {
-    var url =
-        Uri.parse('https://buily-mu-default-rtdb.firebaseio.com/products.json');
+  Future<void> fetchAndSetData([bool filterByUser = false]) async {
+    final filterString =
+        filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
+    var url = Uri.parse(
+        'https://buily-mu-default-rtdb.firebaseio.com/products.json?auth=$authtoken&$filterString');
     try {
-      final response = await http.get(url);
-      final extractedDate = jsonDecode(response.body) as Map<String, dynamic>;
-      if (extractedDate == null) return;
+      var response = await http.get(url);
+      final extractedData = jsonDecode(response.body) as Map<String, dynamic>;
+      if (extractedData == null) return;
+      url = Uri.parse(
+          'https://buily-mu-default-rtdb.firebaseio.com/FavProducts/$userId.json?auth=$authtoken');
+      response = await http.get(url);
+      final favData = jsonDecode(response.body);
       final List<Product> loadedProducts = [];
-      extractedDate.forEach((prodId, prodData) {
-        loadedProducts.add(Product(
-          id: prodId,
-          title: prodData['title'],
-          description: prodData['description'],
-          price: prodData['price'] as double,
-          imageUrl: prodData['imageUrl'],
-        ));
+      extractedData.forEach((prodId, prodData) {
+        loadedProducts.add(
+          Product(
+            id: prodId,
+            title: prodData['title'],
+            description: prodData['description'],
+            price: prodData['price'] as double,
+            imageUrl: prodData['imageUrl'],
+            isFavourite: favData == null ? false : favData['$prodId'] ?? false,
+          ),
+        );
       });
       _items = loadedProducts;
       notifyListeners();
@@ -64,8 +75,8 @@ class Products with ChangeNotifier {
   }
 
   Future<void> addProduct(Product product) async {
-    var url =
-        Uri.parse('https://buily-mu-default-rtdb.firebaseio.com/products.json');
+    var url = Uri.parse(
+        'https://buily-mu-default-rtdb.firebaseio.com/products.json?auth=$authtoken');
     try {
       final respone = await http.post(url,
           body: json.encode({
@@ -73,7 +84,7 @@ class Products with ChangeNotifier {
             "price": product.price,
             "imageUrl": product.imageUrl,
             "description": product.description,
-            "isFavourite": product.isFavourite,
+            "creatorId": userId,
           }));
       Product _tobeSaved = Product(
         id: json.decode(respone.body)['name'],
@@ -95,7 +106,7 @@ class Products with ChangeNotifier {
     final prod = _items.indexWhere((element) => element.id == id);
     if (prod >= 0) {
       var url = Uri.parse(
-          'https://buily-mu-default-rtdb.firebaseio.com/products/$id.json');
+          'https://buily-mu-default-rtdb.firebaseio.com/products/$id.json?auth=$authtoken');
       await http.patch(url,
           body: json.encode({
             "title": product.title,
@@ -114,15 +125,16 @@ class Products with ChangeNotifier {
         _items.indexWhere((element) => element.id == id);
     var existingproduct = _items[exsitingProductIndex];
     var url = Uri.parse(
-        'https://buily-mu-default-rtdb.firebaseio.com/products/$id.json');
+        'https://buily-mu-default-rtdb.firebaseio.com/products/$id.json?auth=$authtoken');
     _items.removeWhere((element) => element.id == id);
     notifyListeners();
     final respose = await http.delete(url);
+    print(respose.statusCode == null ? "null" : respose.statusCode);
     if (respose.statusCode >= 400) {
-      print(respose.statusCode);
       _items.insert(exsitingProductIndex, existingproduct);
       notifyListeners();
       throw HttpException('failed to delete');
     }
+    existingproduct = null;
   }
 }

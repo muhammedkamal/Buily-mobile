@@ -20,14 +20,17 @@ class OrderItem {
 
 class Orders with ChangeNotifier {
   List<OrderItem> _orders = [];
+  final authtoken;
+  final userId;
+  Orders(this.authtoken, this.userId, this._orders);
 
   List<OrderItem> get orders {
     return [..._orders];
   }
 
   Future<void> addOrder(List<CartItem> products, double total) async {
-    var url =
-        Uri.parse('https://buily-mu-default-rtdb.firebaseio.com/orders.json');
+    var url = Uri.parse(
+        'https://buily-mu-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authtoken');
     try {
       final resopnse = await http.post(url,
           body: json.encode({
@@ -61,11 +64,11 @@ class Orders with ChangeNotifier {
   }
 
   Future<void> fetchAndSetOrder() async {
-    var url =
-        Uri.parse('https://buily-mu-default-rtdb.firebaseio.com/orders.json');
+    var url = Uri.parse(
+        'https://buily-mu-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authtoken');
     try {
       final response = await http.get(url);
-      print(response.body);
+      //print(response.body);
       final extractedDate = jsonDecode(response.body) as Map<String, dynamic>;
       final List<OrderItem> loadedProducts = [];
       if (extractedDate == null) return;
@@ -74,12 +77,14 @@ class Orders with ChangeNotifier {
             id: orderId,
             amount: orderData["amount"],
             cartItems: (orderData['products'] as List<dynamic>)
-                .map((e) => CartItem(
-                      id: e['id'],
-                      price: e['price'] as double,
-                      quantity: e['quantity'],
-                      title: e['title'],
-                    ))
+                .map(
+                  (e) => CartItem(
+                    id: e['id'],
+                    price: e['price'] as double,
+                    quantity: e['quantity'],
+                    title: e['title'],
+                  ),
+                )
                 .toList(),
             dateTime: DateTime.parse(orderData["timeStamp"])));
       });
