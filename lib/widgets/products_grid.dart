@@ -18,11 +18,14 @@ class ProductsGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         return ChangeNotifierProvider.value(
           value: products[index],
-          child: ProductGridItem(
-              /* id: products[index].id,
-            title: products[index].title,
-            imageUrl: products[index].imageUrl, */
-              ),
+          child: Hero(
+            tag: products[index].id,
+            child: ProductGridItem(
+                /* id: products[index].id,
+              title: products[index].title,
+              imageUrl: products[index].imageUrl, */
+                ),
+          ),
         );
       },
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
